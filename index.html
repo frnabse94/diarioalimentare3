@@ -36,7 +36,11 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 document.getElementById('sendLink').onclick = async () => {
   const email = document.getElementById('email').value.trim();
   if (!email) return alert('Inserisci email');
-  const { error } = await client.auth.signInWithOtp({ email });
+  const { error } = await client.auth.signInWithOtp({
+  email,
+  options: { emailRedirectTo: window.location.origin }   // <‑‑ novità
+});
+
   if (error) alert(error.message);
   else alert('Controlla la posta e clicca il link');
 };
