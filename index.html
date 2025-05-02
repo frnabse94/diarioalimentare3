@@ -43,7 +43,8 @@ document.getElementById('sendLink').onclick = async () => {
 
 // 2. Se l’utente arriva col link, completiamo il login
 (async () => {
-  const { data, error } = await client.auth.getSessionFromUrl({ storeSession: true });
+  const { data, error } = await client.auth.getSessionFromUrl();
+await client.auth.setSession(data?.session);   // memorizza la sessione
   if (error) return;
   if (data?.session) {
     document.getElementById('entryArea').style.display = 'block';
