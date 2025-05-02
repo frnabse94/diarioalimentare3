@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Diario alimentare</title>
+  <style>
+    body { font-family: sans-serif; max-width: 500px; margin: 40px auto; }
+    button { padding: 8px 16px; margin-top: 8px; }
+    textarea { width: 100%; height: 80px; }
+  </style>
+  <!-- Supabase JS via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<h2>Accedi</h2>
+<input id="email" type="email" placeholder="La tua email" />
+<button id="sendLink">Invia link magico</button>
+
+<hr>
+
+<div id="entryArea" style="display:none;">
+  <h2>Nuovo pasto</h2>
+  <textarea id="text"></textarea><br/>
+  Sintomo (0‑10): <input id="symptom" type="number" min="0" max="10" value="0"/><br/>
+  <button id="save">Salva</button>
+  <p id="msg"></p>
+</div>
+
+<script>
+const SUPABASE_URL  = "QUI_IL_TUO_PUBLIC_SUPABASE_URL";
+const SUPABASE_ANON = "QUI_LA_TUA_ANON_KEY";
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// 1. Invia magic‑link
+document.getElementById('sendLink').onclick = async () => {
+  const email = document.getElementById('email').value.trim();
+  if (!email) return alert('Inserisci email');
+  const { error } = await client.auth.signInWithOtp({ email });
+  if (error) alert(error.message);
+  else alert('Controlla la posta e clicca il link');
+};
+
+// 2. Se l’utente arriva col link, completiamo il login
+(async () => {
+  const { data, error } = await client.auth.getSessionFromUrl({ storeSession: true });
+  if (error) return;
+  if (data?.session) {
+    document.getElementById('entryArea').style.display = 'block';
+    document.querySelector('h2').textContent = 'Benvenuto!';
+  }
+})();
+
+// 3. Salva il pasto nel DB
+document.getElementById('save').onclick = async () => {
+  const text = document.getElementById('text').value.trim();
+  const symptom = parseInt(document.getElementById('symptom').value, 10);
+  if (!text) return alert('Scrivi qualcosa');
+  const { data: user } = await client.auth.getUser();
+  const { error } = await client.from('diary_entries').insert({
+    user_id: user.user.id,
+    raw_text: text,
+    foods: null,
+    symptom
+  });
+  document.getElementById('msg').textContent = error ? error.message : 'Salvato!';
+};
+</script>
+
+</body>
+</html>
