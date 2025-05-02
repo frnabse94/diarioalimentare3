@@ -41,12 +41,15 @@ document.getElementById('sendLink').onclick = async () => {
   else alert('Controlla la posta e clicca il link');
 };
 
-// 2. Se l’utente arriva col link, completiamo il login
+// 2. Se l’utente arriva col link magico, scambiamo 'code' per la sessione
 (async () => {
-  const { data, error } = await client.auth.getSessionFromUrl();
-await client.auth.setSession(data?.session);   // memorizza la sessione
-  if (error) return;
-  if (data?.session) {
+  // L'URL completo della pagina (inclusi i parametri)
+  const redirectURL = window.location.href;
+
+  // Proviamo a scambiare il code per una sessione
+  const { error } = await client.auth.exchangeCodeForSession(redirectURL);
+
+  if (!error) {
     document.getElementById('entryArea').style.display = 'block';
     document.querySelector('h2').textContent = 'Benvenuto!';
   }
